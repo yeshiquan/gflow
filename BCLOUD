@@ -1,0 +1,69 @@
+#edit-mode: -*- python -*-
+#coding:gbk
+
+WORKROOT('../../../')
+
+#gcc version, default 'gcc'
+COMPILER('gcc82') 
+IDLFLAGS('--compack')
+
+#Preprocessor flags.
+CPPFLAGS(r'-std=c++17 -D_GNU_SOURCE -D__STDC_LIMIT_MACROS')
+
+CONFIGS('baidu/feed-mlarch/babylon@stable')
+CONFIGS("baidu/base/configure@stable")
+#CONFIGS("baidu/duer/vertical-common@stable")
+CONFIGS('baidu/haokan-rec/graph-engine/@stable')
+CONFIGS('baidu/third-party/boost@boost_1-73-0-4_PD_BL@git_tag')
+CONFIGS('third-64/gtest@gtest_V1.7.2.0_GCC820_4U3_K3_GEN_PD_BL')
+CONFIGS('public/comlogext/cronoapd@cronoapd_1-0-1-0_PD_BL')
+
+#C flags.
+CFLAGS('-g -pipe -W -Wall -O1 -fPIC -fopenmp')
+
+CXXFLAGS('-g -pipe -W -Werror=return-type -Wall -O2 -fPIC -std=c++17 -fopenmp -Wno-error=misleading-indentation')
+LDFLAGS('-lpthread -lssl -lz -lcrypto -lrt -rdynamic -ldl -lgomp -lbfd -liberty -lopcodes -Wl,-rpath=/opt/compiler/gcc-8.2/lib:/lib64:/lib')
+
+perf_flags=' -O1 -lasan -fPIC -fsanitize=address -fno-omit-frame-pointer -fsanitize-recover=address'
+perf_ld_flags=' -lasan'
+#CXXFLAGS('-g -pipe -W -Werror=return-type -Wall -fPIC -std=c++17 -fopenmp -Wno-error=misleading-indentation' + perf_flags)
+#LDFLAGS('-lpthread -lssl -lz -lcrypto -lrt -rdynamic -ldl -lgomp -lbfd -liberty -lopcodes -Wl,-rpath=/opt/compiler/gcc-8.2/lib:/lib64:/lib ' + perf_ld_flags)
+
+INCPATHS('./src ./rexpr')
+
+HEADERS('src/*.h*','$INC')
+HEADERS('rexpr/rexpr/*.h*','$INC/rexpr')
+HEADERS('src/expr/*.h*','$INC/expr')
+
+libsources = GLOB(
+    'src/*.cpp ' +
+    'src/*/*.cpp ' +
+	''
+)
+
+UTApplication('test_all', Sources(libsources, GLOB('unittests/*.cpp')))
+#Application('test_expr', Sources('test_expr.cpp'))
+#Application('test_expr2', Sources('test_expr2.cpp'))
+#Application('roman', Sources('roman.cpp'))
+#Application('annotation', Sources('annotation.cpp'))
+
+'''
+Application('rexpr', Sources(libsources, GLOB(
+    'rexpr/src/*.cpp ' + 
+    'rexpr/test/*.cpp ' + 
+    ''
+)))
+'''
+
+#Application('calc1', Sources(libsources, GLOB('calc/calc1.cpp ' + '')))
+#Application('calc2', Sources(libsources, GLOB('calc/calc2.cpp ' + '')))
+#Application('calc4', Sources(libsources, GLOB('calc/calc4.cpp ' + '')))
+#Application('calc6', Sources(libsources, GLOB('calc/calc6.cpp ' + '')))
+#Application('calc8', Sources(libsources, GLOB('calc/calc8/*.cpp ' + '')))
+#Application('calc9', Sources(libsources, GLOB('calc/calc9/*.cpp ' + '')))
+#Application('minic', Sources(libsources, GLOB('minic/*.cpp ' + '')))
+#Application('myexpr', Sources(libsources, GLOB('my_expr/*.cpp ' + '')))
+Application('bench_graph', Sources(libsources, GLOB('bench/bench_graph.cpp ' + '')))
+Application('bench_executor', Sources(libsources, GLOB('bench/bench_executor.cpp ' + '')))
+#Application('test_graph', Sources(libsources, GLOB('test_graph.cpp ' + '')))
+#Application('boost_pp_test', Sources(libsources, GLOB('boost_pp_test.cpp ' + '')))

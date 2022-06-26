@@ -1,0 +1,1 @@
+LD_PRELOAD=libasan.so.5 ASAN_OPTIONS=halt_on_error=false:detect_leaks=1:alloc_dealloc_mismatch=0:detect_stack_use_after_return=1:quarantine_size=4194304 ./output/bin/bench_graph -ops_per_thread=100 -executor_type=$1 -times=3
