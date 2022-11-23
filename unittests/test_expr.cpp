@@ -7,8 +7,8 @@
 #include <chrono>
 #include <thread>
 #include <tuple>
-#include <bthread.h>
-#include <bthread/mutex.h>
+// #include <bthread.h>
+// #include <bthread/mutex.h>
 
 #include "expr/expr.h"
 #include "expr/ast.hpp"
@@ -38,10 +38,12 @@ TEST_F(ExprTest, test_expr) {
     variables.emplace("C", 7);
     variables.emplace("D", 8);
     gflow::Expr expr;
-    int result;
-    bool ret = expr.evaluate(expr_string, &variables, result);
-    std::cout << expr_string << " -> result:" << result << std::endl;
-    ASSERT_EQ(result, 24);
+    for (int i = 0; i < 4; ++i) {
+        int result;
+        bool ret = expr.evaluate(expr_string, &variables, result);
+        std::cout << expr_string << " -> result:" << result << std::endl;
+        ASSERT_EQ(result, 24);
+    }
 }
 
 TEST_F(ExprTest, test_var_analyzer) {

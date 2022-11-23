@@ -31,7 +31,7 @@ class GraphExecutor {
     GraphExecutor& operator=(GraphExecutor const&) = delete;  // Copy assign
     GraphExecutor& operator=(GraphExecutor&&) = delete;       // Move assign
 
-    virtual ClosureContext* create_closure_context() = 0;
+    ClosureContext* create_closure_context();
 
     virtual int32_t execute(GraphVertex* vertex,
                             ClosureContext* closure_context) = 0;
@@ -43,7 +43,6 @@ class BthreadGraphExecutor : public GraphExecutor {
         static BthreadGraphExecutor ins;
         return &ins;
     }
-    ClosureContext* create_closure_context() override;
     int32_t execute(GraphVertex* vertex,
                     ClosureContext* closure_context) override;
 };
@@ -54,7 +53,6 @@ class AsyncGraphExecutor : public GraphExecutor {
         static AsyncGraphExecutor ins;
         return &ins;
     }
-    ClosureContext* create_closure_context() override;
     int32_t execute(GraphVertex* vertex,
                     ClosureContext* closure_context) override;
 };

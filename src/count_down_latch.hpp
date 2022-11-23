@@ -12,7 +12,7 @@ inline void CountDownLatch<M, C>::await() {
     if (0 == count){
         return;
     }
-    cv.wait(lck);
+    cv.wait(lck);  
 }
 
 template<typename M, typename C>

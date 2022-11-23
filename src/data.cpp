@@ -14,19 +14,24 @@ void GraphData::release() {
     if (_is_condition) {
         int condition_value = raw<int>();
         for (GraphDependency *downstream : _down_streams) {
+            DCHECK(downstream);
             downstream->fire_condition(condition_value);
         }
     } else {
         for (GraphDependency *downstream : _down_streams) {
-            downstream->fire();
+            DCHECK(downstream);
+            downstream->fire_data();
         }
     }
 }
 
 void GraphData::activate(std::vector<GraphVertex *> &vertexs,
                          ClosureContext *closure_context) {
+    if (_is_released) {
+        return;
+    }
     if (_producer) {
-        LOG(TRACE) << "GraphData activate name:" << _name;
+        LOG(TRACE) << "GraphData[" << _name << "] activate start";
         _producer->activate(vertexs, closure_context);
     } else {
         // LOG(TRACE) << "GraphData not activate without producer activate

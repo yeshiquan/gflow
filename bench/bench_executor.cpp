@@ -1,6 +1,5 @@
 #include <tuple>
-#include <bthread.h>
-#include <bthread/mutex.h>
+
 #include <future>
 #include <mutex>
 #include <vector>
@@ -10,11 +9,16 @@
 
 #include "gflags/gflags.h"
 
-#include "baidu/streaming_log.h"
-#include "base/comlog_sink.h"
-#include "base/strings/stringprintf.h"
-#include "com_log.h"
-#include "cronoapd.h"
+#include "common.h"
+
+// #include "baidu/streaming_log.h"
+// #include "base/comlog_sink.h"
+// #include "base/strings/stringprintf.h"
+// #include "com_log.h"
+// #include "cronoapd.h"
+
+// #include <bthread.h>
+// #include <bthread/mutex.h>
 
 DEFINE_int32(ops_per_thread, 100, "ops_per_thread");
 DEFINE_int32(times, 3, "bench times");

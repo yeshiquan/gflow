@@ -7,11 +7,11 @@
 #include <chrono>
 #include <thread>
 #include <tuple>
-#include <bthread.h>
-#include <bthread/mutex.h>
+// #include <bthread.h>
+// #include <bthread/mutex.h>
 
 #include "vertex.h"
-#include "executor.h"
+#include "graph_executor.h"
 #include "processor.h"
 #include "graph.h"
 #include "closure.h"
@@ -57,6 +57,9 @@ TEST_F(ExecutorTest, test_bthread_and_tuple) {
     bthread_t th;
     bthread_start_background(&th, NULL, execute_vertex, params);
     bthread_join(th, NULL);
+    delete[] value;
+    delete foobar;
+    delete params;
 }
 
 // TEST_F(ExecutorTest, case2) {

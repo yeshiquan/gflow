@@ -1,0 +1,72 @@
+cmake_minimum_required(VERSION 3.10.2)
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
+
+
+file(GLOB SRC_FILES "main.cpp")
+
+include(FetchContent)
+FetchContent_Declare(
+  googletest
+  URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
+)
+# For Windows: Prevent overriding the parent project's compiler/linker settings
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(googletest)
+
+FetchContent_Declare(gflags
+	GIT_REPOSITORY	https://github.com/gflags/gflags.git
+	GIT_TAG			master
+)
+
+FetchContent_GetProperties(gflags)
+if(NOT gflags_POPULATED)
+	FetchContent_Populate(gflags)
+	cmake_policy(SET CMP0069 NEW)
+	add_subdirectory(${gflags_SOURCE_DIR} ${gflags_BINARY_DIR})
+endif()
+
+set(BOOST_INCLUDE_LIBRARIES thread filesystem system program_options variant fusion optional spirit)
+set(BOOST_ENABLE_CMAKE ON)
+
+include(FetchContent)
+FetchContent_Declare(
+  Boost
+  GIT_REPOSITORY https://github.com/boostorg/boost.git
+  GIT_TAG boost-1.80.0
+)
+FetchContent_MakeAvailable(Boost)
+
+include_directories(src)
+
+add_definitions(-std=c++17 -O1 -Werror=return-type)
+
+aux_source_directory("./src" src_list)
+aux_source_directory("./src/expr" expr_src_list)
+aux_source_directory("./unittests" test_list)
+
+project(mmse)
+#add_executable(mmse ${SRC_FILES})
+
+# ============= test ================
+enable_testing()
+
+add_executable(
+  gflow_test
+  ${test_list}
+  ${src_list}
+  ${expr_src_list}
+)
+target_link_libraries(
+    gflow_test
+    GTest::gtest_main
+    gflags
+    Boost::preprocessor
+    Boost::variant
+    Boost::fusion
+    Boost::optional
+    Boost::spirit
+)
+
+include(GoogleTest)
+gtest_discover_tests(gflow_test)

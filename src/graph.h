@@ -4,7 +4,7 @@
 #include "data.h"
 #include "processor.h"
 #include "closure.h"
-#include "executor.h"
+#include "graph_executor.h"
 
 #include <map>
 #include <vector>
@@ -26,44 +26,35 @@ class Graph {
     inline Graph &operator=(const Graph &) = delete;
 
     inline Graph() {
-        int32_t default_executor_type = AsyncExecutorType;
-        init(default_executor_type);
+        init();
     }
 
-    inline Graph(int32_t executor_type) {
-        init(executor_type);
-    }
-
-    inline void init(int32_t executor_type) {
-        if (executor_type == BthreadExecutorType) {
-            _executor = BthreadGraphExecutor::instance();
-        } else if (executor_type == AsyncExecutorType) {
-            _executor = AsyncGraphExecutor::instance();
-        } else {
-            LOG(FATAL) << "Invalid executor_type:" << executor_type;
-        }
-    }
-
-    template <typename PROCESSOR>
-    GraphVertex *add_vertex() {
-        GraphProcessor *processor = new PROCESSOR;
-        return add_vertex(processor);
+    inline void init() {
+#ifdef USE_BTHREAD
+        _executor = BthreadGraphExecutor::instance();
+#else
+        _executor = AsyncGraphExecutor::instance();
+#endif
     }
 
     GraphVertex *add_vertex(std::string processor_name) {
-        GraphProcessor* processor = ProcessorFactory::instance().create(processor_name);
+        std::shared_ptr<GraphProcessor> processor = ProcessorFactory::instance().create(processor_name);
         if (!processor) {
             LOG(ERROR) << "create GraphProcessor failed!! invalid processor name -> " << processor_name;
             return nullptr;
         }
-        GraphVertex* vertex = add_vertex(processor);
+        GraphVertex* vertex = add_vertex(processor, processor_name);
         LOG(TRACE) << "GraphVertex add_vertex create processor:" << processor_name << " ptr:" << processor << " vertex:" << vertex;
         return vertex;
     }
 
-    GraphVertex *add_vertex(GraphProcessor *processor) {
-        auto *v = new GraphVertex(this, processor);
-        v->set_executor(_executor);
+    GraphVertex *add_vertex(std::shared_ptr<GraphProcessor> processor, std::string processor_name) {
+        auto *v = new GraphVertex(this, processor, processor_name);
+#ifdef USE_BTHREAD
+        v->set_executor(BthreadGraphExecutor::instance());
+#else
+        v->set_executor(AsyncGraphExecutor::instance());
+#endif
         _vertixes.emplace_back(v);
         return v;
     }
@@ -77,8 +68,7 @@ class Graph {
         return iter->second;
     }
 
-    GraphData *ensure_data(std::string data_name) {
-        std::lock_guard<std::mutex> guard(_mutex);
+    GraphData *create_data(std::string data_name) {
         auto iter = _global_data.find(data_name);
         if (iter == _global_data.end()) {
             auto *graph_data = new GraphData(data_name);
@@ -103,16 +93,19 @@ class Graph {
         //data->activate(actived_vertexs, closure_context.get());
         data->activate(actived_vertexs, closure_context);
         closure_context->add_wait_vertex_num(actived_vertexs.size());
-        LOG(TRACE) << "--------------------- activate done begin execute -------------";        
-        LOG(NOTICE) << ">>> Graph run graph:" << this << " closure_context:" << closure_context << " activated vertexs size:"
-                    << actived_vertexs.size() << noflush;
-        for (auto& v : actived_vertexs) {
-            LOG(NOTICE) << " " << v << noflush;
+        LOG(TRACE) << "--------------------- activate done begin execute -------------";    
+            
+        LOG(TRACE) << ">>> Graph run activated vertexs size:"
+                    << actived_vertexs.size() << " vertexes:[" << noflush;
+        for (GraphVertex *vertex : actived_vertexs) {
+            LOG(TRACE) << vertex->name() << "," << noflush;
         }
-        LOG(NOTICE) << "";
+        LOG(TRACE) << "]";
+
         for (GraphVertex *vertex : actived_vertexs) {
             if (vertex->is_ready_before_run()) {
-                LOG(TRACE) << "vertex is ready before run!! add vertex:" << vertex;
+                LOG(TRACE)
+                    << "vertex[" << vertex->name() << "] is ready before run";
                 vertex->execute();
             }
         }
@@ -124,6 +117,20 @@ class Graph {
         for (auto vertex : _vertixes) {
             vertex->reset();
         }
+        for (auto& [name, data] : _global_data) {
+            data->reset();
+        }
+    }
+
+    ~Graph() {
+        for (auto vertex : _vertixes) {
+            vertex->reset();
+            delete vertex;
+        }
+        for (auto& [name, data] : _global_data) {
+            data->reset();
+            delete data;
+        }        
     }
 
    private:

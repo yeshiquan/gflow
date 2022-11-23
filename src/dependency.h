@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <atomic>
+#include "check.h"
 
 namespace gflow {
 
@@ -23,19 +24,23 @@ class GraphDependency {
     ~GraphDependency() {}
 
     //bool is_ready() { return _is_ready; }
-    void activate(std::vector<GraphVertex *> &vertexs,
+    int32_t activate(std::vector<GraphVertex *> &vertexs,
                           ClosureContext *closure_context);
     void reset();
-    GraphDependency *if_true(std::string condition);
+    GraphDependency *when(std::string condition);
     void execute_from_me();
 
     int get_condition_data_idx() {
         static int idx = 0;
         return idx++;
     }
-    void fire_condition(bool condition_value);
+    int32_t fire_condition(bool condition_value);
+    int32_t fire_data();
     void fire();
-    GraphData *get_data() { return _depend_data; }
+
+    template<typename T>
+    T *value();
+
     std::string get_name() { return _name; }
     GraphVertex *get_attached_vertex() { return _attached_vertex; }
 
@@ -49,7 +54,10 @@ class GraphDependency {
     GraphVertex *_attached_vertex = nullptr;
     std::string _name;
     std::string _condition_expr;
-    std::atomic<int32_t> _fire_num{0};
+    std::atomic<int32_t> _expect_num{0};
+    bool _condition_ready = false;
 };
 
 }  // namespace
+
+#include "dependency.hpp"

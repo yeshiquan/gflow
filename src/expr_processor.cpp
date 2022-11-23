@@ -7,9 +7,8 @@ namespace gflow {
 void ExpressionProcessor::init(std::string expr_string_,
                                std::string result_name) {
     expr_string = std::move(expr_string_);
-    LOG(TRACE) << "trace 1 " << result_name;
     _result_data = get_data(result_name)->make<int>();
-    LOG(TRACE) << "trace 2 _result_data:" << _result_data;
+    //_result_data = get_data(result_name);
 }
 
 int ExpressionProcessor::setup() {
@@ -35,7 +34,7 @@ int ExpressionProcessor::process() {
     int& result = _result_data->raw<int>();
     std::unordered_map<std::string, int> variables;
     for (const std::string& var : varnames) {
-        int var_value = get_data(var)->raw<int>();
+        int var_value = get_data(var)->as<int>();
         variables.emplace(var, var_value);
     }
     if (!expr.evaluate(expr_string, &variables, ast, result)) {

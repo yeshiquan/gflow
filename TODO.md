@@ -27,4 +27,32 @@
 
 #### 根据名字来创建vertex，方便根据配置文件来创建图, context从processor移到vertex来保存。done
 
-#### 两个process对同一个data声明了不同的类型，要报错。
+#### 使用Thread Santinizer和Address Santinizer检查通过
+    * BthreadExecutor无法通过Thread Santinizer的检查，应该是bthread自己的问题
+    * AsyncExecutor可以通过Thread Santinizer的检查
+
+#### 更友好的trace日志，可以打印vertex的名字 done
+
+#### GraphData初始化时机的重构
+    * 如果对所有声明的EMIT data，在process阶段统一初始化，那么没有显示赋值的data也会得到初始化。
+      这意味着声明了EMIT的data，指针总是不为nullptr  done
+    * process阶段的初始化要做成按需初始化，就是说如果Any已经分配空间了，就不要再分配一次空间了。 done
+    * Any容器的对象怎么做回收，是否要区分T有无移动构造函数，有无构造函数, done, Any会负责析构对象
+    * 多次执行graph，确保GraphData的空间不会释放，可以重复使用  done
+       让同一个graph对象跑两个round，结果一样
+
+#### expr支持bool类型 done
+
+#### 增加DCHECK和likely、unlikely done 
+
+#### 两个process对同一个data声明了不同的类型，要报错。done
+
+#### 通过实现Commiter使得数据emit()后立即发布，从而执行的时候依赖更快被满足，图的驱动力更快
+
+#### 实现Channel机制和MapReduce机制 done
+
+#### Vertex Processor等对象使用ObjectPool创建
+
+### 支持channel机制，实现Query容器，done
+
+### 支持通用算子的定义 done

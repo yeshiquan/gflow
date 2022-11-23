@@ -12,7 +12,9 @@ class GraphVertex;
 class GraphData;
 class GraphProcessor;
 
-using ProcessorCreator = std::function<GraphProcessor*()>;
+using GraphProcessorPtr = std::shared_ptr<GraphProcessor>;
+
+using ProcessorCreator = std::function<GraphProcessorPtr()>;
 class ProcessorFactory {
 private:
     std::unordered_map<std::string, ProcessorCreator> _creator_map;
@@ -21,7 +23,7 @@ public:
         _creator_map.emplace(name, creator);
     }
 
-    GraphProcessor* create(const std::string name) {
+    GraphProcessorPtr create(const std::string name) {
         auto iter = _creator_map.find(name);
         if (iter == _creator_map.end()) {
             return nullptr;
@@ -46,8 +48,8 @@ public:
 #define REGISTER_PROCESSOR(PROCESSOR) \
     using gflow::ProcessorRegister; \
     using gflow::GraphProcessor; \
-    static ProcessorRegister PROCESSOR##ProcessorRegister(#PROCESSOR, []() -> GraphProcessor* { \
-        return new PROCESSOR; \
+    static ProcessorRegister PROCESSOR##ProcessorRegister(#PROCESSOR, []() -> std::shared_ptr<GraphProcessor> { \
+        return std::make_shared<PROCESSOR>(); \
     }); \
 
 class GraphProcessor {
